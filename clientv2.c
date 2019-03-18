@@ -28,7 +28,7 @@
 //recuperado de: https://github.com/benhoyt/inih
 
 // para complilar: gcc clientv2.c ini.c -o a
-/*
+
 typedef struct
 {
     int Usport;
@@ -46,7 +46,7 @@ static int handler(void* port, const char* section, const char* name, const char
     }
     return 1;
   }
-  */
+  
 // fin del codigo del parser
 
 
@@ -83,7 +83,7 @@ char* scan_line(char *line)
 
 
 int main(int argc, char* argv[]){
-/*
+
   configuration config;
   if (ini_parse("test.ini", handler, &config) < 0) {
         printf("Can't load 'test.ini'\n");
@@ -93,7 +93,7 @@ int main(int argc, char* argv[]){
         config.Usport);
 
   //PORT = config.Usport;
-  */
+  
 	int clientSocket, ret;
 	struct sockaddr_in serverAddr;
 	char buffer[1024];
