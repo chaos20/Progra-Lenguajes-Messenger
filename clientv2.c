@@ -8,6 +8,8 @@
 #include <arpa/inet.h>
 #include "ini.h"
 
+#include "user.c"
+
 //#define PORT
 
 
@@ -97,6 +99,26 @@ int main(int argc, char* argv[]){
 	int clientSocket, ret;
 	struct sockaddr_in serverAddr;
 	char buffer[1024];
+
+    //Obtencion y guardado de nombre de usuario en struct User
+    struct User user;
+    printf("Ingrese el nombre de usuario: ");
+    scanf("%s", &user.name[0]);
+    printf("El nombre de usuario guardado es:%s\n", user.name);
+
+    //Obtencion y guardado de nombre de direccion ip en struct User
+    //Extraido de: https://www.geeksforgeeks.org/c-program-display-hostname-ip-address/
+    
+    char hostbuffer[256];
+    char *IPbuffer;
+    struct hostent *host_entry;
+    int hostname;
+
+    hostname = gethostname(hostbuffer, sizeof(hostbuffer));
+    host_entry = gethostbyname(hostbuffer);
+    IPbuffer = inet_ntoa(*((struct in_addr*) host_entry->h_addr_list[0]));
+    strcpy(user.ipAddress, IPbuffer);
+    printf("%s\n", user.ipAddress);
 
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if(clientSocket < 0){
