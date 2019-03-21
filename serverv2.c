@@ -123,7 +123,6 @@ int main(){
         printf("%s\n",inbuf);
         write(p[1], inbuf, 1024);
         bzero(buffer, sizeof(buffer));
-
       }
     }
 	}
