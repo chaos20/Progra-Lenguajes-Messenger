@@ -83,7 +83,6 @@ char* scan_line(char *line)
 }
 // get line code
 
-
 int main(int argc, char* argv[]){
 
   configuration config;
@@ -99,12 +98,15 @@ int main(int argc, char* argv[]){
 	int clientSocket, ret;
 	struct sockaddr_in serverAddr;
 	char buffer[1024];
+    char user[15];
 
     //Obtencion y guardado de nombre de usuario en struct User
-    struct User user;
+    //struct User user;
     printf("Ingrese el nombre de usuario: ");
-    scanf("%s", &user.name[0]);
-    printf("El nombre de usuario guardado es:%s\n", user.name);
+    //scanf("%s", &user.name[0]);
+    scanf("%s", &user[0]);
+    //printf("El nombre de usuario guardado es:%s\n", user.name);
+    printf("El nombre de usuario guardado es:%s\n", user);
 
     //Obtencion y guardado de nombre de direccion ip en struct User
     //Extraido de: https://www.geeksforgeeks.org/c-program-display-hostname-ip-address/
@@ -117,8 +119,8 @@ int main(int argc, char* argv[]){
     hostname = gethostname(hostbuffer, sizeof(hostbuffer));
     host_entry = gethostbyname(hostbuffer);
     IPbuffer = inet_ntoa(*((struct in_addr*) host_entry->h_addr_list[0]));
-    strcpy(user.ipAddress, IPbuffer);
-    printf("%s\n", user.ipAddress);
+    //strcpy(user.ipAddress, IPbuffer);
+    //printf("%s\n", user.ipAddress);
 
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if(clientSocket < 0){
@@ -140,8 +142,20 @@ int main(int argc, char* argv[]){
 	printf("[+]Connected to Server.\n");
 
 	while(1){
-		printf("Client: \t");
-		scanf("%s", &buffer[0]);
+        int position = 0;
+
+        strcpy(buffer+position, user);
+        position = strlen(buffer)+1;        
+
+        printf("Digite el usuario del destinatario: \n");
+        scanf("%s", &buffer[position]);
+        position = strlen(buffer)+1;
+
+        printf("Mensaje de %s: \n", user);
+        scanf("%s", &buffer[position]);
+/*
+		printf("%s: \t", user.name);
+		scanf("%s", &buffer[0]);*/
 		send(clientSocket, buffer, strlen(buffer), 0);
 
 		if(strcmp(buffer, ":exit") == 0){
