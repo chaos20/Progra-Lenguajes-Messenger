@@ -141,22 +141,26 @@ int main(int argc, char* argv[]){
 	}
 	printf("[+]Connected to Server.\n");
 
+    send(clientSocket, user, 1024, 0);    
+
 	while(1){
         int position = 0;
-
+        //copia usuario origen
         strcpy(buffer+position, user);
-        position = strlen(buffer)+1;        
+        position = position+15;       
 
+        //copia usuario destino
         printf("Digite el usuario del destinatario: \n");
-        scanf("%s", &buffer[position]);
-        position = strlen(buffer)+1;
+        scanf("%s", (buffer+position));
+        printf("buffer:%s\n", buffer+position);
+        position = position+15; 
 
         printf("Mensaje de %s: \n", user);
-        scanf("%s", &buffer[position]);
+        scanf("%s", buffer+position);
 /*
 		printf("%s: \t", user.name);
 		scanf("%s", &buffer[0]);*/
-		send(clientSocket, buffer, strlen(buffer), 0);
+		send(clientSocket, buffer, 1024, 0);
 
 		if(strcmp(buffer, ":exit") == 0){
 			close(clientSocket);
