@@ -8,6 +8,7 @@
 #include <arpa/inet.h>
 #include "ini.h"
 #include <netdb.h>
+//#include "user.c"
 
 //#define PORT
 
@@ -105,7 +106,7 @@ int main(int argc, char* argv[]){
     //scanf("%s", &user.name[0]);
     scanf("%s", &user[0]);
     //printf("El nombre de usuario guardado es:%s\n", user.name);
-    //printf("El nombre de usuario guardado es:%s\n", user);
+    printf("El nombre de usuario guardado es:%s\n", user);
 
     //Obtencion y guardado de nombre de direccion ip en struct User
     //Extraido de: https://www.geeksforgeeks.org/c-program-display-hostname-ip-address/
@@ -140,23 +141,26 @@ int main(int argc, char* argv[]){
 	}
 	printf("[+]Connected to Server.\n");
 
-  send(clientSocket, user, strlen(buffer), 0);
+    send(clientSocket, user, 1024, 0);
+
 	while(1){
         int position = 0;
-
+        //copia usuario origen
         strcpy(buffer+position, user);
-        position = strlen(buffer)+1;
+        position = position+15;
 
+        //copia usuario destino
         printf("Digite el usuario del destinatario: \n");
-        scanf("%s", &buffer[position]);
-        position = strlen(buffer)+1;
+        scanf("%s", (buffer+position));
+        printf("buffer:%s\n", buffer+position);
+        position = position+15;
 
         printf("Mensaje de %s: \n", user);
-        scanf("%s", &buffer[position]);
+        scanf("%s", buffer+position);
 /*
 		printf("%s: \t", user.name);
 		scanf("%s", &buffer[0]);*/
-		send(clientSocket, buffer, strlen(buffer), 0);
+		send(clientSocket, buffer, 1024, 0);
 
 		if(strcmp(buffer, ":exit") == 0){
 			close(clientSocket);
@@ -164,11 +168,11 @@ int main(int argc, char* argv[]){
 			exit(1);
 		}
 
-		//if(recv(clientSocket, buffer, 1024, 0) < 0){
-			//printf("[-]Error in receiving data.\n");
-		//}else{
-			//printf(YEL"Server: \t%s"RESET"\n", buffer);
-		//}
+		if(recv(clientSocket, buffer, 1024, 0) < 0){
+			printf("[-]Error in receiving data.\n");
+		}else{
+			printf(YEL"Server: \t%s"RESET"\n", buffer);
+		}
 	}
 
 	return 0;
