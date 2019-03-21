@@ -9,7 +9,7 @@
 
 #define PORT 4444
 
-char* scan_line(char *line)  //puede ser util para crear strings largos
+/*char* scan_line(char *line)  //puede ser util para crear strings largos
 {
     int ch; //as getchar() returns `int`
 
@@ -36,7 +36,7 @@ char* scan_line(char *line)  //puede ser util para crear strings largos
     }
 
     return line;
-}
+}*/
 // get line code
 
 
@@ -83,25 +83,25 @@ int main(){
 
 	if (pipe(p) < 0)
 		exit(1);
-
   while(1){
     printf("esperando coneccion\n");
 		newSocket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
 		if(newSocket < 0){
 			exit(1);
 		}
-    //aqui se debe recibir nombre del que se conecta
-		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-    recv(newSocket, buffer, 1024, 0);
+
     char username[15];
-    strcpy(buffer,username);
+    recv(newSocket, buffer, 1024, 0);
+    strcpy(username, buffer);
+
+		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
     childpid = fork();//se abre el proceso de cliente
 		if(childpid == 0){
 			close(sockfd);
-      childpid = fork();
+      childpid = fork();// los 2 procesos del cliente (recibir y enviar)
       if(childpid == 0){//se recibe mensaje y se pone en el pipe
         while(1){
-          printf("%s esperando mensaje :\n", username);
+          printf(" esperando mensaje :\n");
   				recv(newSocket, buffer, 1024, 0);
   				if(strcmp(buffer, ":exit") == 0){
   					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));

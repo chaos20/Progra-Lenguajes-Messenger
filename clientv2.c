@@ -7,7 +7,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "ini.h"
-
+#include <netdb.h>
 
 //#define PORT
 
@@ -105,7 +105,7 @@ int main(int argc, char* argv[]){
     //scanf("%s", &user.name[0]);
     scanf("%s", &user[0]);
     //printf("El nombre de usuario guardado es:%s\n", user.name);
-    printf("El nombre de usuario guardado es:%s\n", user);
+    //printf("El nombre de usuario guardado es:%s\n", user);
 
     //Obtencion y guardado de nombre de direccion ip en struct User
     //Extraido de: https://www.geeksforgeeks.org/c-program-display-hostname-ip-address/
@@ -140,6 +140,7 @@ int main(int argc, char* argv[]){
 	}
 	printf("[+]Connected to Server.\n");
 
+  send(clientSocket, user, strlen(buffer), 0);
 	while(1){
         int position = 0;
 
@@ -163,11 +164,11 @@ int main(int argc, char* argv[]){
 			exit(1);
 		}
 
-		if(recv(clientSocket, buffer, 1024, 0) < 0){
-			printf("[-]Error in receiving data.\n");
-		}else{
-			printf(YEL"Server: \t%s"RESET"\n", buffer);
-		}
+		//if(recv(clientSocket, buffer, 1024, 0) < 0){
+			//printf("[-]Error in receiving data.\n");
+		//}else{
+			//printf(YEL"Server: \t%s"RESET"\n", buffer);
+		//}
 	}
 
 	return 0;
