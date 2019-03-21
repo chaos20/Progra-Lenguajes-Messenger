@@ -78,30 +78,54 @@ int main(){
 		printf("[-]Error in binding.\n");
 	}
 
+  char inbuf[1024];
+  int p[2], pid, nbytes;
 
-	while(1){
+	if (pipe(p) < 0)
+		exit(1);
+
+  while(1){
+    printf("esperando coneccion\n");
 		newSocket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
 		if(newSocket < 0){
 			exit(1);
 		}
+    //aqui se debe recibir nombre del que se conecta
 		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-
-		if((childpid = fork()) == 0){
+    recv(newSocket, buffer, 1024, 0);
+    char username[15];
+    strcpy(buffer,username);
+    childpid = fork();//se abre el proceso de cliente
+		if(childpid == 0){
 			close(sockfd);
+      childpid = fork();
+      if(childpid == 0){//se recibe mensaje y se pone en el pipe
+        while(1){
+          printf("%s esperando mensaje :\n", username);
+  				recv(newSocket, buffer, 1024, 0);
+  				if(strcmp(buffer, ":exit") == 0){
+  					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+  					break;
+  				}
+          else{
+            write(p[1], buffer, 1024);
+  					bzero(buffer, sizeof(buffer));
+  				}
+        }
+      }
+      else{//revisa pipe por mensajes para este cliente
+        printf("revisar el pipe\n");
+        nbytes = read(p[0], inbuf, 1024);
+        //  revisa si este username esta en el inbuf como destino
+        //  si esta le manda el mensaje
+        send(newSocket, inbuf, strlen(inbuf), 0);//debe ser send al destino
+        //  si no esta lo devuelve al _pipe
+        printf("%s\n",inbuf);
+        write(p[1], inbuf, 1024);
+        bzero(buffer, sizeof(buffer));
 
-			while(1){
-				recv(newSocket, buffer, 1024, 0);
-				if(strcmp(buffer, ":exit") == 0){
-					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-					break;
-				}else{
-					printf("Client: %s\n", buffer);
-					send(newSocket, buffer, strlen(buffer), 0);
-					bzero(buffer, sizeof(buffer));
-				}
-			}
-		}
-
+      }
+    }
 	}
 
 	close(newSocket);
