@@ -10,8 +10,6 @@
 
 #include "user.c"
 
-#include "user.c"
-
 //#define PORT
 
 
@@ -75,11 +73,7 @@ int main(int argc, char* argv[]){
 
     //Obtencion y guardado de nombre de direccion ip en struct User
     //Extraido de: https://www.geeksforgeeks.org/c-program-display-hostname-ip-address/
-<<<<<<< HEAD
 
-=======
-    
->>>>>>> Paulo
     char hostbuffer[256];
     char *IPbuffer;
     struct hostent *host_entry;
@@ -110,66 +104,6 @@ int main(int argc, char* argv[]){
 	}
 	printf("[+]Conectado al servidor.\n");
 
-<<<<<<< HEAD:clientv2.c
-<<<<<<< HEAD
-    send(clientSocket, user, 1024, 0);
-=======
-    send(clientSocket, user, 1024, 0);    
->>>>>>> Paulo
-
-	while(1){
-        //int position = 0;
-        //copia usuario origen
-<<<<<<< HEAD
-        strcpy(buffer+position, user);
-<<<<<<< HEAD
-        position = position+15;
-=======
-        position = position+15;       
->>>>>>> Paulo
-
-        //copia usuario destino
-        printf("Digite el usuario del destinatario: \n");
-        scanf("%s", (buffer+position));
-        printf("buffer:%s\n", buffer+position);
-<<<<<<< HEAD
-        position = position+15;
-=======
-        position = position+15; 
->>>>>>> Paulo
-=======
-        strcpy(buffer, user);
-        //position = position+15;       
-        
-        scanf("%s", buffer+30);
-        printf("Mensaje de %s: \n", user);
-
-        //copia usuario destino
-        printf("Digite el usuario del destinatario: \n");
-        scanf("%s", (buffer+15));
-        //printf("buffer:%s\n", buffer+15);
-        //position = position+15; 
->>>>>>> Paulo
-
-/*
-		printf("%s: \t", user.name);
-		scanf("%s", &buffer[0]);*/
-		send(clientSocket, buffer, 1024, 0);
-
-		if(strcmp(buffer, ":exit") == 0){
-			close(clientSocket);
-			printf("[-]Disconnected from server.\n");
-			exit(1);
-		}
-
-		if(recv(clientSocket, buffer, 1024, 0) < 0){
-			printf("[-]Error in receiving data.\n");
-		}else{
-			printf(YEL"Server: \t%s"RESET"", buffer);
-            printf(YEL"Server: \t%s"RESET"\n", buffer+30);
-		}
-	}
-=======
 
   //una vez conectado, se envia el username como primer mensaje
   send(clientSocket, user, 1024, 0);
@@ -197,7 +131,6 @@ int main(int argc, char* argv[]){
       }
     }
   }
->>>>>>> Josh:client.c
 
   else{ //padre espera recibir un mensaje
     while(1){
