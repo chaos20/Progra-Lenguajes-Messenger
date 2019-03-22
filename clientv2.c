@@ -136,7 +136,6 @@ int main(int argc, char* argv[]){
         printf("[-]Error in receiving data.\n");
       }
       else{
-        printf("cualquier");
         printf(YEL"%s : %s "RESET"\n", buffer, buffer+30);
       }
     }
