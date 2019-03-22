@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <string.h>
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -36,12 +36,13 @@ int main(){
 	socklen_t addr_size;
 
 	char buffer[1024];
+	char inbuf[1024];
 	pid_t childpid;
 	pid_t childpid2;
 
 	//array de usuarios
 	struct UserSocket users[100];
-	int cantUsers = 0;
+	//int cantUsers = 0;
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockfd < 0){
@@ -68,6 +69,11 @@ int main(){
 		printf("[-]Error in binding.\n");
 	}
 
+	int usersPipe[2];
+	int p[2];
+	if(pipe(usersPipe)<0)
+		exit(1);
+	write(usersPipe[1],"0",4);
 
 	while(1){
 		newSocket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
@@ -80,20 +86,26 @@ int main(){
 		char username[15];
 		recv(newSocket, buffer, 1024, 0);
 		strcpy(username, buffer);
-		printf("User: %s\n", username);
-
 		printf("Nueva conexion de %s desde %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-		struct UserSocket newUser;
-		strcpy(newUser.name, username);
-		newUser.sockNumber = newSocket;
-		users[cantUsers] = newUser;
-		cantUsers++;
+		char newUser[20];
+		strcpy(newUser, username);
+		sprintf(newUser+15, "%d", newSocket);
+//==============
 
-		//pipe
-		int usersPipe[2];
-		int p[2];
-		if(pipe(usersPipe)<0)
-			exit(1);
+		char cantUs[5];
+		read(usersPipe[0],cantUs,4);
+		int cant = atoi(cantUs);
+		sprintf(cantUs,"%d", cant+1);
+		write(usersPipe[1],cantUs,4);
+
+		for(int x = 0; x < cant; x++){
+			read(usersPipe[0],buffer,20);
+			write(usersPipe[1],buffer,20);
+		}
+		write(usersPipe[1], newUser, 20);
+		printf("%s : %s : %s\n", newUser, newUser+15, cantUs);
+//==============
+
 		if(pipe(p)<0)
 			exit(1);
 			//------------------------------------------------
@@ -109,40 +121,42 @@ int main(){
 							printf("%s has disconnected from %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
 							exit(1);
 						}else{
-							char sendUser[15];
-							strcpy(sendUser, buffer+15);
-							int sendSocket = searchUser(users, cantUsers, sendUser);
-							if(sendSocket != -1){
-		            write(p[1],buffer,1024);
-							}else{
-								strcpy(buffer, "El usuario no esta conectado.\0");
-								send(newSocket, buffer, strlen(buffer), 0);
-							}
-							bzero(buffer, sizeof(buffer));
+							printf("recibiendo: %s : %s : %s \n", buffer, buffer+15, buffer+30);
+		          write(p[1],buffer,1024);
 						}
+						bzero(buffer, sizeof(buffer));
 					}
 					break;
-				}//--------------------------------------------------
+				}
 				else{
 					while(1){
 						read(p[0],buffer, 1024);
+						printf("revisando: %s : %s : %s \n", buffer, buffer+15, buffer+30);
+
 						char sendUser[15];
 						strcpy(sendUser, buffer+15);
-						int sendSocket = searchUser(users, cantUsers, sendUser);
-						if(sendSocket != -1){
-							send(sendSocket, buffer, 1024, 0);
+
+						read(usersPipe[0],cantUs,4);
+						printf("cantUs: %s\n", cantUs);
+						int canti = atoi(cantUs);
+						write(usersPipe[1],cantUs,4);
+						for(int x = 0; x < canti; x++){
+							read(usersPipe[0],inbuf,20);
+							printf("usuario %d : %s\n", x+1, inbuf);
+							if((strcmp(inbuf,sendUser)) == 0){
+								int sendSocket = atoi(inbuf+15);
+								printf("enviando: %s : %s : %s : %d \n", buffer, buffer+15, buffer+30, sendSocket);
+								send(sendSocket, buffer,1024, 0);
+							}
+							write(usersPipe[1],inbuf,20);
 						}
+						bzero(buffer, sizeof(buffer));
+						bzero(inbuf, sizeof(inbuf));
 					}//--------------------------------------------
 					break;
-			}//-------------------------------------------------
-			//-------------------------------------------------
-
+				}
+			}
 		}
-
+		close(newSocket);
+		return 0;
 	}
-
-	close(newSocket);
-
-
-	return 0;
-}
