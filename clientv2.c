@@ -48,42 +48,9 @@ static int handler(void* port, const char* section, const char* name, const char
     }
     return 1;
   }
-  
-// fin del codigo del parser
-
-
-// funcion para enviar texto de tamaño más grande que una palabra
-char* scan_line(char *line)
-{
-    int ch; //as getchar() returns `int`
-
-    if( (line = malloc(sizeof(char))) == NULL) //allocating memory
-    {
-        //checking if allocation was successful or not
-        printf("unsuccessful allocation");
-        exit(1);
-    }
-
-    line[0]='\0';
-
-    for(int index = 0; ( (ch = getchar())!='\n' ) && (ch != EOF) ; index++)
-    {
-        if( (line = realloc(line, (index + 2)*sizeof(char))) == NULL )
-        {
-            //checking if reallocation was successful or not
-            printf("unsuccessful reallocation");
-            exit(1);
-        }
-
-        line[index] = (char) ch; //type casting `int` to `char`
-        line[index + 1] = '\0'; //inserting null character at the end
-    }
-
-    return line;
-}
-// get line code
 
 int main(int argc, char* argv[]){
+  pid_t pid;
 
   configuration config;
   if (ini_parse("test.ini", handler, &config) < 0) {
@@ -94,7 +61,7 @@ int main(int argc, char* argv[]){
         config.Usport);
 
   //PORT = config.Usport;
-  
+
 	int clientSocket, ret;
 	struct sockaddr_in serverAddr;
 	char buffer[1024];
@@ -110,7 +77,7 @@ int main(int argc, char* argv[]){
 
     //Obtencion y guardado de nombre de direccion ip en struct User
     //Extraido de: https://www.geeksforgeeks.org/c-program-display-hostname-ip-address/
-    
+
     char hostbuffer[256];
     char *IPbuffer;
     struct hostent *host_entry;
@@ -141,41 +108,39 @@ int main(int argc, char* argv[]){
 	}
 	printf("[+]Conectado al servidor.\n");
 
-    send(clientSocket, user, 1024, 0);    
+  send(clientSocket, user, 1024, 0);
 
-	while(1){
-        //int position = 0;
-        //copia usuario origen
-        strcpy(buffer, user);
-        //position = position+15;       
-        
-        scanf("%s", buffer+30);
-        printf("Mensaje de %s: \n", user);
+  if((pid = fork()) != 0){
+    while(1){
+      strcpy(buffer, user);
 
-        //copia usuario destino
-        printf("Digite el usuario del destinatario: \n");
-        scanf("%s", (buffer+15));
-        //printf("buffer:%s\n", buffer+15);
-        //position = position+15; 
+      scanf("%s", buffer+30);
+      printf("Mensaje de %s: \n", user);
+      //copia usuario destino
+      printf("Digite el usuario del destinatario: \n");
+      scanf("%s", (buffer+15));
 
-/*
-		printf("%s: \t", user.name);
-		scanf("%s", &buffer[0]);*/
-		send(clientSocket, buffer, 1024, 0);
+  		send(clientSocket, buffer, 1024, 0);
 
-		if(strcmp(buffer, ":exit") == 0){
-			close(clientSocket);
-			printf("[-]Disconnected from server.\n");
-			exit(1);
-		}
+      if(strcmp(buffer+30, ":exit") == 0){
+  			close(clientSocket);
+  			printf("[-]Disconnected from server.\n");
+  			exit(1);
+  		}
+    }
+  }
 
-		if(recv(clientSocket, buffer, 1024, 0) < 0){
-			printf("[-]Error in receiving data.\n");
-		}else{
-			printf(YEL"Server: \t%s"RESET"", buffer);
-            printf(YEL"Server: \t%s"RESET"\n", buffer+30);
-		}
-	}
+  else{
+    while(1){
+      if(recv(clientSocket, buffer, 1024, 0) < 0){
+        printf("[-]Error in receiving data.\n");
+      }
+      else{
+        printf("cualquier");
+        printf(YEL"%s : %s "RESET"\n", buffer, buffer+30);
+      }
+    }
 
+  }
 	return 0;
 }

@@ -11,36 +11,6 @@
 
 #define PORT 4444
 
-char* scan_line(char *line)  //puede ser util para crear strings largos
-{
-    int ch; //as getchar() returns `int`
-
-    if( (line = malloc(sizeof(char))) == NULL) //allocating memory
-    {
-        //checking if allocation was successful or not
-        printf("unsuccessful allocation");
-        exit(1);
-    }
-
-    line[0]='\0';
-
-    for(int index = 0; ( (ch = getchar())!='\n' ) && (ch != EOF) ; index++)
-    {
-        if( (line = realloc(line, (index + 2)*sizeof(char))) == NULL )
-        {
-            //checking if reallocation was successful or not
-            printf("unsuccessful reallocation");
-            exit(1);
-        }
-
-        line[index] = (char) ch; //type casting `int` to `char`
-        line[index + 1] = '\0'; //inserting null character at the end
-    }
-
-    return line;
-}
-// get line code
-
 int searchUser(struct UserSocket users[10], int cantUsuarios, char*name){
 	struct UserSocket *userTmp = NULL;
 	printf("%s%d\n", users->name, users->sockNumber);
@@ -67,6 +37,7 @@ int main(){
 
 	char buffer[1024];
 	pid_t childpid;
+	pid_t childpid2;
 
 	//array de usuarios
 	struct UserSocket users[100];
@@ -105,13 +76,13 @@ int main(){
 			exit(1);
 		}
 
-//josh
+    //josh
 		char username[15];
 		recv(newSocket, buffer, 1024, 0);
 		strcpy(username, buffer);
 		printf("User: %s\n", username);
 
-		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+		printf("Nueva coneccion de %s desde %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
 		struct UserSocket newUser;
 		strcpy(newUser.name, username);
 		newUser.sockNumber = newSocket;
@@ -125,53 +96,49 @@ int main(){
 			exit(1);
 		if(pipe(p)<0)
 			exit(1);
+			//------------------------------------------------
+			//------------------------------------------------
+			if((childpid2 = fork())!= 0){
+				//-------------------------------------------------
+				if((childpid = fork()) != 0){
+					close(sockfd);
+					while(1){
+						recv(newSocket, buffer, 1024, 0);
 
-		if((childpid = fork()) != 0){
-			close(sockfd);
-
-			//read(usersPipe[0],buffer, 1024);
-			//read(p[0], users, 100);
-			
-			//close(usersPipe[0]);
-			write(usersPipe[1], buffer, 1024);
-			write(p[1], users, 100);
-
-			while(1){
-				recv(newSocket, buffer, 1024, 0);
-				//write(usersPipe[1], buffer, 1024);
-				//read(usersPipe[0],buffer, 1024);
-				
-				if(strcmp(buffer, ":exit") == 0){
-					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
-					break;
-				}else{
-					char sendUser[15];
-					strcpy(sendUser, buffer+15);
-					printf("%s\n", sendUser);
-
-					int sendSocket = searchUser(users, cantUsers, sendUser);
-					printf("newSocket%d\n", newSocket);
-					printf("sendsocket%d\n", sendSocket);
-
-					if(sendSocket != -1){
-						printf("%dClient: %s\n", newSocket, buffer);
-						printf("%dClient: %s\n", newSocket, buffer+15);
-						printf("%dClient: %s\n", newSocket, buffer+30);
-						send(sendSocket, buffer, strlen(buffer), 0); //dksflsdfjsdjfls
-					}else{
-						strcpy(buffer, "El usuario no esta conectado.\0");
-						send(newSocket, buffer, strlen(buffer), 0);
+						if(strcmp(buffer+30, ":exit") == 0){
+							printf("%s has disconnected from %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+							exit(1);
+						}else{
+							char sendUser[15];
+							strcpy(sendUser, buffer+15);
+							printf("%s\n", sendUser);
+							int sendSocket = searchUser(users, cantUsers, sendUser);
+							if(sendSocket != -1){
+		            write(p[1],buffer,1024);
+							}else{
+								strcpy(buffer, "El usuario no esta conectado.\0");
+								send(newSocket, buffer, strlen(buffer), 0);
+							}
+							bzero(buffer, sizeof(buffer));
+						}
 					}
-					bzero(buffer, sizeof(buffer));
-				}
-			}
-		}
-		else{
-			//close(usersPipe[1]);
-			read(usersPipe[0],buffer, 1024);
-			read(p[0], users, 100);
-			printf("%s\n", buffer);
-			printf("%s\n", buffer);
+					break;
+				}//--------------------------------------------------
+				else{
+					while(1){
+						read(p[0],buffer, 1024);
+						char sendUser[15];
+						strcpy(sendUser, buffer+15);
+						printf("a: %s\n", sendUser);
+						int sendSocket = searchUser(users, cantUsers, sendUser);
+						if(sendSocket != -1){
+							send(sendSocket, buffer, 1024, 0);
+						}
+					}//--------------------------------------------
+					break;
+			}//-------------------------------------------------
+			//-------------------------------------------------
+
 		}
 
 	}
