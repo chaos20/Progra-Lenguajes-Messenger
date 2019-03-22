@@ -89,10 +89,10 @@ int main(int argc, char* argv[]){
 
   configuration config;
   if (ini_parse("test.ini", handler, &config) < 0) {
-        printf("Can't load 'test.ini'\n");
+        printf("No se puede cargar 'test.ini'\n");
         return 1;
   }
-  printf("Config loaded from 'test.ini': port=%d\n",
+  printf("Configuracion cargada de 'test.ini': puerto=%d\n",
         config.Usport);
 
   //PORT = config.Usport;
@@ -130,10 +130,10 @@ int main(int argc, char* argv[]){
 
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if(clientSocket < 0){
-		printf("[-]Error in connection.\n");
+		printf("[-]Error en la conexion.\n");
 		exit(1);
 	}
-	printf("[+]Client Socket is created.\n");
+	printf("[+]Socket del cliente se ha creado.\n");
 
 	memset(&serverAddr, '\0', sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
@@ -142,10 +142,10 @@ int main(int argc, char* argv[]){
 
 	ret = connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 	if(ret < 0){
-		printf("[-]Error in connection.\n");
+		printf("[-]Error en la conexion.\n");
 		exit(1);
 	}
-	printf("[+]Connected to Server.\n");
+	printf("[+]Conectado al servidor.\n");
 
 <<<<<<< HEAD
     send(clientSocket, user, 1024, 0);
@@ -154,8 +154,9 @@ int main(int argc, char* argv[]){
 >>>>>>> Paulo
 
 	while(1){
-        int position = 0;
+        //int position = 0;
         //copia usuario origen
+<<<<<<< HEAD
         strcpy(buffer+position, user);
 <<<<<<< HEAD
         position = position+15;
@@ -172,9 +173,20 @@ int main(int argc, char* argv[]){
 =======
         position = position+15; 
 >>>>>>> Paulo
-
+=======
+        strcpy(buffer, user);
+        //position = position+15;       
+        
+        scanf("%s", buffer+30);
         printf("Mensaje de %s: \n", user);
-        scanf("%s", buffer+position);
+
+        //copia usuario destino
+        printf("Digite el usuario del destinatario: \n");
+        scanf("%s", (buffer+15));
+        //printf("buffer:%s\n", buffer+15);
+        //position = position+15; 
+>>>>>>> Paulo
+
 /*
 		printf("%s: \t", user.name);
 		scanf("%s", &buffer[0]);*/
@@ -189,7 +201,8 @@ int main(int argc, char* argv[]){
 		if(recv(clientSocket, buffer, 1024, 0) < 0){
 			printf("[-]Error in receiving data.\n");
 		}else{
-			printf(YEL"Server: \t%s"RESET"\n", buffer);
+			printf(YEL"Server: \t%s"RESET"", buffer);
+            printf(YEL"Server: \t%s"RESET"\n", buffer+30);
 		}
 	}
 

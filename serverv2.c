@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -41,6 +41,19 @@
 }*/
 // get line code
 
+int searchUser(struct UserSocket users[10], int cantUsuarios, char*name){
+	struct UserSocket *userTmp = NULL;
+	printf("%s%d\n", users->name, users->sockNumber);
+	for (int i = 0; i < cantUsuarios; i++)
+	{
+		userTmp = users+i;
+		if(strcmp(userTmp->name, name) == 0){
+			printf("%d\n", userTmp->sockNumber);
+			return userTmp->sockNumber;
+		}
+	}
+	return -1;
+}
 
 int main(){
 
@@ -106,6 +119,7 @@ int main(){
 		printf("User: %s\n", username);
 
 		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+<<<<<<< HEAD
 >>>>>>> Paulo
 
     char username[15];
@@ -115,6 +129,20 @@ int main(){
 		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
     childpid = fork();//se abre el proceso de cliente
 		if(childpid == 0){
+=======
+		struct UserSocket newUser;
+		strcpy(newUser.name, username);
+		newUser.sockNumber = newSocket;
+		users[cantUsers] = newUser;
+		cantUsers++;
+
+		//pipe
+		int usersPipe[2];
+		if(pipe(usersPipe)<0)
+			exit(1);
+
+		if((childpid = fork()) != 0){
+>>>>>>> Paulo
 			close(sockfd);
 <<<<<<< HEAD
       childpid = fork();// los 2 procesos del cliente (recibir y enviar)
@@ -146,19 +174,43 @@ int main(){
     }
 =======
 
+			//close(usersPipe[0]);
+			write(usersPipe[1], buffer, 1024);
+
 			while(1){
 				recv(newSocket, buffer, 1024, 0);
+				//write(usersPipe[1], buffer, 1024);
+				//read(usersPipe[0],buffer, 1024);
+				
 				if(strcmp(buffer, ":exit") == 0){
 					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
 					break;
 				}else{
-					printf("%dClient: %s\n", newSocket, buffer);
-					printf("%dClient: %s\n", newSocket, buffer+15);
-					printf("%dClient: %s\n", newSocket, buffer+30);
-					send(newSocket, buffer, strlen(buffer), 0); //dksflsdfjsdjfls
+					char sendUser[15];
+					strcpy(sendUser, buffer+15);
+					printf("%s\n", sendUser);
+
+					int sendSocket = searchUser(users, cantUsers, sendUser);
+					printf("newSocket%d\n", newSocket);
+					printf("sendsocket%d\n", sendSocket);
+
+					if(sendSocket != -1){
+						printf("%dClient: %s\n", newSocket, buffer);
+						printf("%dClient: %s\n", newSocket, buffer+15);
+						printf("%dClient: %s\n", newSocket, buffer+30);
+						send(sendSocket, buffer, strlen(buffer), 0); //dksflsdfjsdjfls
+					}else{
+						strcpy(buffer, "El usuario no esta conectado.\0");
+						send(newSocket, buffer, strlen(buffer), 0);
+					}
 					bzero(buffer, sizeof(buffer));
 				}
 			}
+		}
+		else{
+			//close(usersPipe[1]);
+			read(usersPipe[0],buffer, 1024);
+			printf("%s\n", buffer);
 		}
 
 >>>>>>> Paulo
