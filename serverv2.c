@@ -82,7 +82,7 @@ int main(){
 		strcpy(username, buffer);
 		printf("User: %s\n", username);
 
-		printf("Nueva coneccion de %s desde %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+		printf("Nueva conexion de %s desde %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
 		struct UserSocket newUser;
 		strcpy(newUser.name, username);
 		newUser.sockNumber = newSocket;
@@ -111,7 +111,6 @@ int main(){
 						}else{
 							char sendUser[15];
 							strcpy(sendUser, buffer+15);
-							printf("%s\n", sendUser);
 							int sendSocket = searchUser(users, cantUsers, sendUser);
 							if(sendSocket != -1){
 		            write(p[1],buffer,1024);
@@ -129,7 +128,6 @@ int main(){
 						read(p[0],buffer, 1024);
 						char sendUser[15];
 						strcpy(sendUser, buffer+15);
-						printf("a: %s\n", sendUser);
 						int sendSocket = searchUser(users, cantUsers, sendUser);
 						if(sendSocket != -1){
 							send(sendSocket, buffer, 1024, 0);
