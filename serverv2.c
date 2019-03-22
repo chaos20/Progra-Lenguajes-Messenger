@@ -7,6 +7,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
+#include "user.c"
+
 #define PORT 4444
 
 /*char* scan_line(char *line)  //puede ser util para crear strings largos
@@ -53,6 +55,10 @@ int main(){
 	char buffer[1024];
 	pid_t childpid;
 
+	//array de usuarios
+	struct UserSocket users[10];
+	int cantUsers = 0;
+
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockfd < 0){
 		printf("[-]Error in connection.\n");
@@ -86,9 +92,21 @@ int main(){
   while(1){
     printf("esperando coneccion\n");
 		newSocket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
+
 		if(newSocket < 0){
 			exit(1);
 		}
+<<<<<<< HEAD
+=======
+
+//josh
+		char username[15];
+		recv(newSocket, buffer, 1024, 0);
+		strcpy(username, buffer);
+		printf("User: %s\n", username);
+
+		printf("Connection accepted from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+>>>>>>> Paulo
 
     char username[15];
     recv(newSocket, buffer, 1024, 0);
@@ -98,6 +116,7 @@ int main(){
     childpid = fork();//se abre el proceso de cliente
 		if(childpid == 0){
 			close(sockfd);
+<<<<<<< HEAD
       childpid = fork();// los 2 procesos del cliente (recibir y enviar)
       if(childpid == 0){//se recibe mensaje y se pone en el pipe
         while(1){
@@ -125,6 +144,24 @@ int main(){
         bzero(buffer, sizeof(buffer));
       }
     }
+=======
+
+			while(1){
+				recv(newSocket, buffer, 1024, 0);
+				if(strcmp(buffer, ":exit") == 0){
+					printf("Disconnected from %s:%d\n", inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+					break;
+				}else{
+					printf("%dClient: %s\n", newSocket, buffer);
+					printf("%dClient: %s\n", newSocket, buffer+15);
+					printf("%dClient: %s\n", newSocket, buffer+30);
+					send(newSocket, buffer, strlen(buffer), 0); //dksflsdfjsdjfls
+					bzero(buffer, sizeof(buffer));
+				}
+			}
+		}
+
+>>>>>>> Paulo
 	}
 
 	close(newSocket);
