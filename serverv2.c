@@ -127,7 +127,6 @@ int main(){
 								int sendSocket = atoi(inbuf+15);
 								printf("enviando: %s : %s : %s : %d \n", buffer, buffer+15, buffer+30, sendSocket);
 								send(sendSocket, buffer,1024,0);
-								printf("se envio");
 							}
 							write(usersPipe[1],inbuf,20);
 						}

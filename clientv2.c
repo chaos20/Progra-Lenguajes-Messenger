@@ -138,8 +138,11 @@ int main(int argc, char* argv[]){
         printf("[-]Error in receiving data.\n");
       }
       else{
-        printf(YEL"%s : %s "RESET"\n", buffer, buffer+30);
+        if(strcmp(buffer,"\0") > 0){
+          printf(YEL"%s : %s "RESET"\n", buffer, buffer+30);
+        }
       }
+      bzero(buffer, sizeof(buffer));
     }
 
   }
