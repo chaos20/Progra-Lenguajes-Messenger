@@ -7,42 +7,21 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-#include "user.c"
-
 #define PORT 4444
 
-int searchUser(struct UserSocket users[10], int cantUsuarios, char*name){
-	struct UserSocket *userTmp = NULL;
-	printf("%s%d\n", users->name, users->sockNumber);
-	for (int i = 0; i < cantUsuarios; i++)
-	{
-		userTmp = users+i;
-		if(strcmp(userTmp->name, name) == 0){
-			printf("%d\n", userTmp->sockNumber);
-			return userTmp->sockNumber;
-		}
-	}
-	return -1;
-}
-
 int main(){
-
+	//variables del socket
 	int sockfd, ret;
-	 struct sockaddr_in serverAddr;
-
+	struct sockaddr_in serverAddr;
 	int newSocket;
 	struct sockaddr_in newAddr;
-
 	socklen_t addr_size;
-
+	//buffers para enviar y recibir strings
 	char buffer[1024];
 	char inbuf[1024];
+	//inicializador del fork()
 	pid_t childpid;
 	pid_t childpid2;
-
-	//array de usuarios
-	struct UserSocket users[100];
-	//int cantUsers = 0;
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
 	if(sockfd < 0){
@@ -68,50 +47,53 @@ int main(){
 	}else{
 		printf("[-]Error in binding.\n");
 	}
-
+	//Pipes (usuarios y mensajes)
 	int usersPipe[2];
 	int p[2];
 	if(pipe(usersPipe)<0)
 		exit(1);
+	//se le agrega el contador de usuarios al pipe
 	write(usersPipe[1],"0",4);
 
 	while(1){
+		//esperar nueva conexion
 		newSocket = accept(sockfd, (struct sockaddr*)&newAddr, &addr_size);
-
 		if(newSocket < 0){
 			exit(1);
 		}
-
-    //josh
+		//NUEVO USUARIO
+    //se guarda un username para el cliente
 		char username[15];
-		recv(newSocket, buffer, 1024, 0);
+		recv(newSocket, buffer, 1024, 0);//primer mensaje es el nombres
 		strcpy(username, buffer);
 		printf("Nueva conexion de %s desde %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
+
 		char newUser[20];
 		strcpy(newUser, username);
 		sprintf(newUser+15, "%d", newSocket);
-//==============
-
+		//Revisar cuantos usuarios hay con la primera salida del pipe, que seria la cantidad de usuarios
 		char cantUs[5];
 		read(usersPipe[0],cantUs,4);
 		int cant = atoi(cantUs);
 		sprintf(cantUs,"%d", cant+1);
+		//envia al pipe la cantidad anterior +1
 		write(usersPipe[1],cantUs,4);
-
+		//se recorre el pipe la cantidad de usuarios que habian
+		//queda el valor de la nueva cantidad de usuarios como primera salida
+		//solo se leen y se vuelven a meter para acomodar el pipe
 		for(int x = 0; x < cant; x++){
 			read(usersPipe[0],buffer,20);
 			write(usersPipe[1],buffer,20);
 		}
 		write(usersPipe[1], newUser, 20);
 		printf("%s : %s : %s\n", newUser, newUser+15, cantUs);
-//==============
+		//==============
 
 		if(pipe(p)<0)
 			exit(1);
-			//------------------------------------------------
-			//------------------------------------------------
+			//primer fork
 			if((childpid2 = fork())!= 0){
-				//-------------------------------------------------
+				//el padre del primer fork, ejecuta otro forks
 				if((childpid = fork()) != 0){
 					close(sockfd);
 					while(1){
@@ -121,32 +103,31 @@ int main(){
 							printf("%s has disconnected from %s:%d\n",username, inet_ntoa(newAddr.sin_addr), ntohs(newAddr.sin_port));
 							exit(1);
 						}else{
-							printf("recibiendo: %s : %s : %s \n", buffer, buffer+15, buffer+30);
+							//printf("recibiendo: %s : %s : %s \n", buffer, buffer+15, buffer+30);
 		          write(p[1],buffer,1024);
 						}
 						bzero(buffer, sizeof(buffer));
 					}
 					break;
 				}
+				//hijo de segundo fork
+				//revisa el pipe por mensajes nuevos
 				else{
 					while(1){
-						read(p[0],buffer, 1024);
-						printf("revisando: %s : %s : %s \n", buffer, buffer+15, buffer+30);
-
+						read(p[0],buffer, 1024);//lee mensaje
 						char sendUser[15];
 						strcpy(sendUser, buffer+15);
-
 						read(usersPipe[0],cantUs,4);
-						printf("cantUs: %s\n", cantUs);
 						int canti = atoi(cantUs);
 						write(usersPipe[1],cantUs,4);
+						//recorre todo el pipe de usuarios y revisa el destinatario
 						for(int x = 0; x < canti; x++){
 							read(usersPipe[0],inbuf,20);
-							printf("usuario %d : %s\n", x+1, inbuf);
-							if((strcmp(inbuf,sendUser)) == 0){
+							if((strcmp(inbuf,sendUser)) == 0){// si lo encuentra envia el mensaje
 								int sendSocket = atoi(inbuf+15);
 								printf("enviando: %s : %s : %s : %d \n", buffer, buffer+15, buffer+30, sendSocket);
-								send(sendSocket, buffer,1024, 0);
+								send(sendSocket, buffer,1024,0);
+								printf("se envio");
 							}
 							write(usersPipe[1],inbuf,20);
 						}
