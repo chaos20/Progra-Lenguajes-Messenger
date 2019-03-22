@@ -7,8 +7,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "ini.h"
-#include <netdb.h>
-//#include "user.c"
+
+#include "user.c"
 
 #include "user.c"
 
@@ -20,10 +20,6 @@
 #define RED   "\x1B[31m"
 #define GRN   "\x1B[32m"
 #define YEL   "\x1B[33m"
-#define BLU   "\x1B[34m"
-#define MAG   "\x1B[35m"
-#define CYN   "\x1B[36m"
-#define WHT   "\x1B[37m"
 #define RESET "\x1B[0m"
 
 
@@ -51,41 +47,8 @@ static int handler(void* port, const char* section, const char* name, const char
     return 1;
   }
 
-// fin del codigo del parser
-
-
-// funcion para enviar texto de tamaño más grande que una palabra
-char* scan_line(char *line)
-{
-    int ch; //as getchar() returns `int`
-
-    if( (line = malloc(sizeof(char))) == NULL) //allocating memory
-    {
-        //checking if allocation was successful or not
-        printf("unsuccessful allocation");
-        exit(1);
-    }
-
-    line[0]='\0';
-
-    for(int index = 0; ( (ch = getchar())!='\n' ) && (ch != EOF) ; index++)
-    {
-        if( (line = realloc(line, (index + 2)*sizeof(char))) == NULL )
-        {
-            //checking if reallocation was successful or not
-            printf("unsuccessful reallocation");
-            exit(1);
-        }
-
-        line[index] = (char) ch; //type casting `int` to `char`
-        line[index + 1] = '\0'; //inserting null character at the end
-    }
-
-    return line;
-}
-// get line code
-
 int main(int argc, char* argv[]){
+  pid_t pid;
 
   configuration config;
   if (ini_parse("test.ini", handler, &config) < 0) {
@@ -147,6 +110,7 @@ int main(int argc, char* argv[]){
 	}
 	printf("[+]Conectado al servidor.\n");
 
+<<<<<<< HEAD:clientv2.c
 <<<<<<< HEAD
     send(clientSocket, user, 1024, 0);
 =======
@@ -205,6 +169,49 @@ int main(int argc, char* argv[]){
             printf(YEL"Server: \t%s"RESET"\n", buffer+30);
 		}
 	}
+=======
 
+  //una vez conectado, se envia el username como primer mensaje
+  send(clientSocket, user, 1024, 0);
+  //fork
+  if((pid = fork()) != 0){//hijo espera que el usuario digite un mensaje y enviarlo al servidor
+    while(1){
+      //el formato del mensaje es el siguiente:
+      //buffer [1024]
+      //0-14 > Origen
+      //15-29 > destino
+      //30-1024 > mensaje
+      strcpy(buffer, user);
+      scanf("%s", buffer+30);
+      //revisa si el  mensaje es para salir dek programa
+      if(strcmp(buffer+30, ":exit") == 0){
+  			close(clientSocket);
+  			printf(RED"[-]Disconnected from server."RESET"\n");
+        send(clientSocket, buffer, 1024, 0);
+  			exit(1);
+  		}
+      else{// si no es par salir, pide destinatario
+        printf(GRN"Para: \t"RESET"");
+        scanf("%s", (buffer+15));
+        send(clientSocket, buffer, 1024, 0);
+      }
+    }
+  }
+>>>>>>> Josh:client.c
+
+  else{ //padre espera recibir un mensaje
+    while(1){
+      if(recv(clientSocket, buffer, 1024, 0) < 0){
+        printf("[-]Error in receiving data.\n");
+      }
+      else{
+        if(strcmp(buffer,"\0") > 0){
+          printf(YEL"%s : %s "RESET"\n", buffer, buffer+30);
+        }
+      }
+      bzero(buffer, sizeof(buffer));
+    }
+
+  }
 	return 0;
 }
