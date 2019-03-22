@@ -10,6 +10,8 @@
 #include <netdb.h>
 //#include "user.c"
 
+#include "user.c"
+
 //#define PORT
 
 
@@ -110,7 +112,11 @@ int main(int argc, char* argv[]){
 
     //Obtencion y guardado de nombre de direccion ip en struct User
     //Extraido de: https://www.geeksforgeeks.org/c-program-display-hostname-ip-address/
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> Paulo
     char hostbuffer[256];
     char *IPbuffer;
     struct hostent *host_entry;
@@ -141,19 +147,31 @@ int main(int argc, char* argv[]){
 	}
 	printf("[+]Connected to Server.\n");
 
+<<<<<<< HEAD
     send(clientSocket, user, 1024, 0);
+=======
+    send(clientSocket, user, 1024, 0);    
+>>>>>>> Paulo
 
 	while(1){
         int position = 0;
         //copia usuario origen
         strcpy(buffer+position, user);
+<<<<<<< HEAD
         position = position+15;
+=======
+        position = position+15;       
+>>>>>>> Paulo
 
         //copia usuario destino
         printf("Digite el usuario del destinatario: \n");
         scanf("%s", (buffer+position));
         printf("buffer:%s\n", buffer+position);
+<<<<<<< HEAD
         position = position+15;
+=======
+        position = position+15; 
+>>>>>>> Paulo
 
         printf("Mensaje de %s: \n", user);
         scanf("%s", buffer+position);
