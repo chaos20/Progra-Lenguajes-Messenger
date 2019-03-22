@@ -7,8 +7,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include "ini.h"
-#include <netdb.h>
-//#include "user.c"
+
+#include "user.c"
 
 //#define PORT
 
@@ -49,48 +49,15 @@ static int handler(void* port, const char* section, const char* name, const char
     return 1;
   }
 
-// fin del codigo del parser
-
-
-// funcion para enviar texto de tamaño más grande que una palabra
-char* scan_line(char *line)
-{
-    int ch; //as getchar() returns `int`
-
-    if( (line = malloc(sizeof(char))) == NULL) //allocating memory
-    {
-        //checking if allocation was successful or not
-        printf("unsuccessful allocation");
-        exit(1);
-    }
-
-    line[0]='\0';
-
-    for(int index = 0; ( (ch = getchar())!='\n' ) && (ch != EOF) ; index++)
-    {
-        if( (line = realloc(line, (index + 2)*sizeof(char))) == NULL )
-        {
-            //checking if reallocation was successful or not
-            printf("unsuccessful reallocation");
-            exit(1);
-        }
-
-        line[index] = (char) ch; //type casting `int` to `char`
-        line[index + 1] = '\0'; //inserting null character at the end
-    }
-
-    return line;
-}
-// get line code
-
 int main(int argc, char* argv[]){
+  pid_t pid;
 
   configuration config;
   if (ini_parse("test.ini", handler, &config) < 0) {
-        printf("Can't load 'test.ini'\n");
+        printf("No se puede cargar 'test.ini'\n");
         return 1;
   }
-  printf("Config loaded from 'test.ini': port=%d\n",
+  printf("Configuracion cargada de 'test.ini': puerto=%d\n",
         config.Usport);
 
   //PORT = config.Usport;
@@ -124,10 +91,10 @@ int main(int argc, char* argv[]){
 
 	clientSocket = socket(AF_INET, SOCK_STREAM, 0);
 	if(clientSocket < 0){
-		printf("[-]Error in connection.\n");
+		printf("[-]Error en la conexion.\n");
 		exit(1);
 	}
-	printf("[+]Client Socket is created.\n");
+	printf("[+]Socket del cliente se ha creado.\n");
 
 	memset(&serverAddr, '\0', sizeof(serverAddr));
 	serverAddr.sin_family = AF_INET;
@@ -136,44 +103,43 @@ int main(int argc, char* argv[]){
 
 	ret = connect(clientSocket, (struct sockaddr*)&serverAddr, sizeof(serverAddr));
 	if(ret < 0){
-		printf("[-]Error in connection.\n");
+		printf("[-]Error en la conexion.\n");
 		exit(1);
 	}
-	printf("[+]Connected to Server.\n");
+	printf("[+]Conectado al servidor.\n");
 
-    send(clientSocket, user, 1024, 0);
+  send(clientSocket, user, 1024, 0);
 
-	while(1){
-        int position = 0;
-        //copia usuario origen
-        strcpy(buffer+position, user);
-        position = position+15;
+  if((pid = fork()) != 0){
+    while(1){
+      strcpy(buffer, user);
 
-        //copia usuario destino
-        printf("Digite el usuario del destinatario: \n");
-        scanf("%s", (buffer+position));
-        printf("buffer:%s\n", buffer+position);
-        position = position+15;
+      scanf("%s", buffer+30);
+      printf("Mensaje de %s: \n", user);
+      //copia usuario destino
+      printf("Digite el usuario del destinatario: \n");
+      scanf("%s", (buffer+15));
 
-        printf("Mensaje de %s: \n", user);
-        scanf("%s", buffer+position);
-/*
-		printf("%s: \t", user.name);
-		scanf("%s", &buffer[0]);*/
-		send(clientSocket, buffer, 1024, 0);
+  		send(clientSocket, buffer, 1024, 0);
 
-		if(strcmp(buffer, ":exit") == 0){
-			close(clientSocket);
-			printf("[-]Disconnected from server.\n");
-			exit(1);
-		}
+      if(strcmp(buffer+30, ":exit") == 0){
+  			close(clientSocket);
+  			printf("[-]Disconnected from server.\n");
+  			exit(1);
+  		}
+    }
+  }
 
-		if(recv(clientSocket, buffer, 1024, 0) < 0){
-			printf("[-]Error in receiving data.\n");
-		}else{
-			printf(YEL"Server: \t%s"RESET"\n", buffer);
-		}
-	}
+  else{
+    while(1){
+      if(recv(clientSocket, buffer, 1024, 0) < 0){
+        printf("[-]Error in receiving data.\n");
+      }
+      else{
+        printf(YEL"%s : %s "RESET"\n", buffer, buffer+30);
+      }
+    }
 
+  }
 	return 0;
 }
