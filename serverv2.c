@@ -69,7 +69,7 @@ int main(){
 	pid_t childpid;
 
 	//array de usuarios
-	struct UserSocket users[10];
+	struct UserSocket users[100];
 	int cantUsers = 0;
 
 	sockfd = socket(AF_INET, SOCK_STREAM, 0);
@@ -120,14 +120,21 @@ int main(){
 
 		//pipe
 		int usersPipe[2];
+		int p[2];
 		if(pipe(usersPipe)<0)
+			exit(1);
+		if(pipe(p)<0)
 			exit(1);
 
 		if((childpid = fork()) != 0){
 			close(sockfd);
 
+			//read(usersPipe[0],buffer, 1024);
+			//read(p[0], users, 100);
+			
 			//close(usersPipe[0]);
 			write(usersPipe[1], buffer, 1024);
+			write(p[1], users, 100);
 
 			while(1){
 				recv(newSocket, buffer, 1024, 0);
@@ -162,6 +169,8 @@ int main(){
 		else{
 			//close(usersPipe[1]);
 			read(usersPipe[0],buffer, 1024);
+			read(p[0], users, 100);
+			printf("%s\n", buffer);
 			printf("%s\n", buffer);
 		}
 
